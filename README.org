@@ -1,0 +1,139 @@
+#+TITLE: PostgresSQL Database Docker
+#+KEYWORKDS: docker container virtualizatio postgres sql database server 
+
+* Usage 
+** Build the docker 
+
+Run _$ make_. 
+
+#+BEGIN_SRC sh
+  $ make 
+  docker build -t alpine-db -f Dockerfile .
+  Sending build context to Docker daemon 66.56 kB
+  Step 1 : FROM alpine
+   ---> 88e169ea8f46
+  Step 2 : RUN echo "@edge http://nl.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories &&     apk update &&     apk add curl "libpq@edge<9.7" "postgresql-client@edge<9.7" "postgresql@edge<9.7" "postgresql-contrib@edge<9.7" &&     mkdir /docker-entrypoint-initdb.d &&     curl -o /usr/local/bin/gosu -sSL "https://github.com/tianon/gosu/releases/download/1.2/gosu-amd64" &&     chmod +x /usr/local/bin/gosu &&     apk del curl &&     rm -rf /var/cache/apk/*
+   ---> Running in 3738e1ff2782
+  fetch http://dl-cdn.alpinelinux.org/alpine/v3.5/main/x86_64/APKINDEX.tar.gz
+  fetch http://dl-cdn.alpinelinux.org/alpine/v3.5/community/x86_64/APKINDEX.tar.gz
+  fetch http://nl.alpinelinux.org/alpine/edge/main/x86_64/APKINDEX.tar.gz
+  v3.5.1-30-gf9f9312ea3 [http://dl-cdn.alpinelinux.org/alpine/v3.5/main]
+  v3.5.1-29-ga981b1f149 [http://dl-cdn.alpinelinux.org/alpine/v3.5/community]
+  v3.5.0-1379-g2096f071a3 [http://nl.alpinelinux.org/alpine/edge/main]
+  OK: 13628 distinct packages available
+  (1/17) Installing ca-certificates (20161130-r0)
+  (2/17) Installing libssh2 (1.7.0-r2)
+  (3/17) Installing libcurl (7.52.1-r1)
+  (4/17) Installing curl (7.52.1-r1)
+  (5/17) Installing db (5.3.28-r0)
+  (6/17) Installing libsasl (2.1.26-r8)
+  (7/17) Installing libldap (2.4.44-r3)
+  (8/17) Installing libpq@edge (9.6.1-r1)
+  (9/17) Installing ncurses-terminfo-base (6.0-r7)
+  (10/17) Installing ncurses-terminfo (6.0-r7)
+  (11/17) Installing ncurses-libs (6.0-r7)
+  (12/17) Installing libedit (20150325.3.1-r3)
+  (13/17) Installing postgresql-client@edge (9.6.1-r1)
+  (14/17) Installing libxml2 (2.9.4-r0)
+  (15/17) Installing postgresql@edge (9.6.1-r1)
+  (16/17) Installing libuuid (2.28.2-r1)
+  (17/17) Installing postgresql-contrib@edge (9.6.1-r1)
+  Executing busybox-1.25.1-r0.trigger
+  Executing ca-certificates-20161130-r0.trigger
+  OK: 34 MiB in 28 packages
+  (1/4) Purging curl (7.52.1-r1)
+  (2/4) Purging libcurl (7.52.1-r1)
+  (3/4) Purging ca-certificates (20161130-r0)
+  Executing ca-certificates-20161130-r0.post-deinstall
+  (4/4) Purging libssh2 (1.7.0-r2)
+  Executing busybox-1.25.1-r0.trigger
+  OK: 32 MiB in 24 packages
+   ---> eab0f50377ba
+  Removing intermediate container 3738e1ff2782
+  Step 3 : ENV LANG en_US.utf8
+   ---> Running in 3b111630002c
+   ---> a3d23eaebf06
+  Removing intermediate container 3b111630002c
+  Step 4 : ENV PGDATA /var/lib/postgresql/data
+   ---> Running in 46adfc9e63da
+   ---> 650993c8abfb
+  Removing intermediate container 46adfc9e63da
+  Step 5 : VOLUME /var/lib/postgresql/data
+   ---> Running in e3d4b38e588e
+   ---> 7855d253a6fa
+  Removing intermediate container e3d4b38e588e
+  Step 6 : COPY docker-entrypoint.sh /
+   ---> fa979f4e92da
+  Removing intermediate container d5450586e2bb
+  Step 7 : ENTRYPOINT /docker-entrypoint.sh
+   ---> Running in 2ca7348347e2
+   ---> e261c9e00eeb
+  Removing intermediate container 2ca7348347e2
+  Step 8 : EXPOSE 5432
+   ---> Running in 5911d7d15cb7
+   ---> 1cc5270d47f7
+  Removing intermediate container 5911d7d15cb7
+  Step 9 : CMD postgres
+   ---> Running in e6073f2d4229
+   ---> ae9740746614
+  Removing intermediate container e6073f2d4229
+  Successfully built ae9740746614
+
+
+#+END_SRC
+** Run the docker image 
+   
+ - _$ make run_
+
+Description: 
+
+ 1. make directory ./data  
+ 2. Mount the directory ./data from host to /data in the container.
+ 3. Bind the port 5432 listening only localhost (127.0.0.1) to the
+    container port 5432 (Postgres default port).
+ 4. Run the database server postgresql 
+
+#+BEGIN_SRC sh 
+  $ make run
+  mkdir -p data 
+  # mkdir -p ./data
+  # chmod 777 data 
+  docker run -it -v /home/arch/Documents/projects/postgresq.docker/data:/data -p 127.0.0.1:5432:5432 alpine-db
+  LOG:  database system was shut down at 2017-02-11 04:06:25 UTC
+  LOG:  MultiXact member wraparound protections are now enabled
+  LOG:  database system is ready to accept connections
+  LOG:  autovacuum launcher started
+
+#+END_SRC
+
+To connect to the database server open another shell and run _$ psql -h 127.0.0.1 -U postgres_ 
+
+#+BEGIN_SRC sh
+  $ psql -h 127.0.0.1 -U postgres
+  psql (9.6.1)
+  Type "help" for help.
+
+  postgres=# 
+#+END_SRC
+
+** Debug 
+
+To enter the docker shell run _$ make debug_. 
+
+#+BEGIN_SRC sh
+  $ make debug
+  docker run -it -v /home/arch/Documents/projects/postgresq.docker/data:/data -p 127.0.0.1:5432:5432 --entrypoint=sh alpine-db
+  / # 
+  / # ls /data 
+  PG_VERSION            pg_ident.conf         pg_stat_tmp
+  base                  pg_logical            pg_subtrans
+  fileflag              pg_multixact          pg_tblspc
+  global                pg_notify             pg_twophase
+  pg_clog               pg_replslot           pg_xlog
+  pg_commit_ts          pg_serial             postgresql.auto.conf
+  pg_dynshmem           pg_snapshots          postgresql.conf
+  pg_hba.conf           pg_stat               postmaster.opts
+  / # 
+
+#+END_SRC
+
