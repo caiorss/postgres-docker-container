@@ -2,7 +2,7 @@
 #+KEYWORKDS: docker container virtualizatio postgres sql database server 
 
 * Usage 
-** Build the docker 
+** Build the image
 
 Run _$ make_. 
 
@@ -81,7 +81,7 @@ Run _$ make_.
 
 
 #+END_SRC
-** Run the docker image 
+** Test the docker image 
    
  - _$ make run_
 
@@ -137,3 +137,12 @@ To enter the docker shell run _$ make debug_.
 
 #+END_SRC
 
+** Run 
+
+To start the docker use: 
+
+#+BEGIN_SRC sh 
+   $ docker run -it -v <directory from host to be mounted>:/data -p 127.0.0.1:5432:5432 alpine-db
+#+END_SRC
+
+Or edit the script file:postgres-docker.sh and run it.
